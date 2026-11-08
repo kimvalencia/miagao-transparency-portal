@@ -10,7 +10,7 @@
  * Nothing is computed that the API does not publish: amounts, statuses and
  * labels are the API's, row for row.
  */
-import { DATASET_KEYS, type DatasetKey, type Exclusion, type PortalConfig } from '../config';
+import { DATASET_KEYS, placeSearchTerms, type DatasetKey, type Exclusion, type PortalConfig } from '../config';
 import type { Client, Params } from '../api/client';
 import type { BridgeGroup, Disclaimer, Meta, OfficeLens, ProjectRow } from '../api/types';
 import { BRIDGE_GROUPS } from '../api/types';
@@ -64,13 +64,15 @@ export async function resolveScope(client: Client, config: PortalConfig): Promis
     // no region at all, and the API's region filter would drop every such row.
     // A row with no region cannot be ruled out by region, so it stays.
     ...places.flatMap((p) =>
-      (p.datasets ?? DATASET_KEYS).map((dataset): Job => ({
-        kind: 'place',
-        label: p.label,
-        dataset,
-        params: { q: p.q ?? p.label },
-        region: p.region,
-      })),
+      (p.datasets ?? DATASET_KEYS).flatMap((dataset) =>
+        placeSearchTerms(p).map((q): Job => ({
+          kind: 'place',
+          label: p.label,
+          dataset,
+          params: { q },
+          region: p.region,
+        })),
+      ),
     ),
   ];
 

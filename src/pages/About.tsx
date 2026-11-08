@@ -199,7 +199,7 @@ function GaaQuestions() {
               <span role="columnheader" className="r">Check it</span>
             </div>
             {state.value.queries.map((q) => (
-              <div className="tr" role="row" key={q.place + q.department_id}>
+              <div className="tr" role="row" key={`${q.place}·${q.q}·${q.department_id}`}>
                 <span role="cell"><strong>{q.q}</strong></span>
                 <span role="cell">{departmentShort(q.department)}</span>
                 <span role="cell" className="r num">{count(q.matched)}</span>
@@ -209,8 +209,8 @@ function GaaQuestions() {
             ))}
           </div>
           <p className="fine">
-            Every one of the {count(state.value.searched)} departments in the GAA was searched for each place; those not listed
-            matched nothing. A program found by two places is shown once.
+            Every one of the {count(state.value.searched)} departments in the GAA was searched with each place’s search terms;
+            those not listed matched nothing. A program found by two searches is shown once.
             {state.value.excluded.length > 0 ? ` ${plural(state.value.excluded.length, 'program')} removed by hand:` : ' None removed by hand.'}
           </p>
           {state.value.excluded.length > 0 && (

@@ -17,7 +17,7 @@ export default defineConfig({
     places: [
       {
         label: "Miagao",
-        q: "Miagao",
+        q: ["Miagao", "Miag-ao"],
         region: "VI",
       },
     ],

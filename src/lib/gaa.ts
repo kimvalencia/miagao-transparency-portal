@@ -18,7 +18,7 @@
  * - DPWH money by office per year is not here: it comes with each office from
  *   the district pages (see OfficeHistory on the page).
  */
-import type { Exclusion, PortalConfig } from '../config';
+import { placeSearchTerms, type Exclusion, type PortalConfig } from '../config';
 import type { Client } from '../api/client';
 import type { GaaDepartment, GaaProgram } from '../api/types';
 import { GAA_YEARS } from '../api/types';
@@ -41,6 +41,8 @@ export interface GaaQuery {
   /** Families fetched (less than matched only when cut at the limit). */
   fetched: number;
   truncated: boolean;
+  /** Families this search matched, for reconciling against the API's own totals. */
+  keys: string[];
   api: string;
 }
 
@@ -78,7 +80,9 @@ export function loadGaa(client: Client, config: PortalConfig, onProgress?: (done
 export async function resolveGaa(client: Client, config: PortalConfig, onProgress?: (done: number, total: number) => void): Promise<GaaResult> {
   const places = config.scope.places ?? [];
   const departments = (await client.gaaDepartments()).data;
-  const jobs = places.flatMap((p) => departments.map((d) => ({ place: p.label, q: p.q ?? p.label, department: d })));
+  const jobs = places.flatMap((p) =>
+    placeSearchTerms(p).flatMap((q) => departments.map((d) => ({ place: p.label, q, department: d }))),
+  );
 
   let done = 0;
   onProgress?.(0, jobs.length);
@@ -109,6 +113,7 @@ export async function resolveGaa(client: Client, config: PortalConfig, onProgres
       matched,
       fetched: rows.length,
       truncated,
+      keys: rows.map((r) => gaaKey(r.fam_key)),
       api: client.href(`/api/v1/gaa/departments/${j.department.id}/programs`, { q: j.q }),
     });
     for (const r of rows) {

@@ -15,7 +15,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout, argv, cwd, env, exit } from 'node:process';
 import { createClient } from '../src/api/client.ts';
 import type { DistrictCard } from '../src/api/types.ts';
-import { DEFAULT_API, type PlaceQuery, type PortalConfig, type PortalKind } from '../src/config.ts';
+import { DEFAULT_API, placeSearchTerms, type PlaceQuery, type PortalConfig, type PortalKind } from '../src/config.ts';
 
 const api = createClient(env.VITE_API_BASE || DEFAULT_API);
 // --out=path writes somewhere else (to try it without touching your config).
@@ -51,10 +51,10 @@ function officesOf(districts: DistrictCard[]): OfficeChoice[] {
   return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-async function countPlace(p: PlaceQuery): Promise<Record<string, number>> {
+async function countPlace(q: string, p: PlaceQuery): Promise<Record<string, number>> {
   const out: Record<string, number> = {};
   for (const ds of ['dpwh', 'fmr', 'hfep', 'nia'] as const) {
-    const r = await api.get<{ total: number }>(`/datasets/${ds}/projects`, { q: p.q ?? p.label, region: p.region, limit: 1 });
+    const r = await api.get<{ total: number }>(`/datasets/${ds}/projects`, { q, region: p.region, limit: 1 });
     out[ds] = r.data.total;
   }
   return out;
@@ -190,8 +190,10 @@ async function main() {
       ];
       console.log('\nChecking how many project titles name it…');
       for (const c of candidates) {
-        const counts = await countPlace(c);
-        console.log(`  q="${c.q}"${region ? ` region=${region}` : ''}: ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+        for (const q of placeSearchTerms(c)) {
+          const counts = await countPlace(q, c);
+          console.log(`  q="${q}"${region ? ` region=${region}` : ''}: ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+        }
       }
       const which = await ask('Use (1) the name alone, or (2) the name with the province (fewer false matches, may miss titles without the province)?', '1');
       places = [candidates[which === '2' ? 1 : 0]];

@@ -8,7 +8,7 @@ Everything comes from the public, read-only, CORS-open BetterGov.ph Budget API
 | --- | --- |
 | `GET /api/v1/hgab/2027` | Program names, status wording (label, sub, help), plain terms, the version names, the document list |
 | `GET /api/v1/hgab/2027/datasets/dpwh/projects?office=…` | Every DPWH line under one office, plus the office's tier and the districts it serves (`office_lens`) |
-| `GET /api/v1/hgab/2027/datasets/{program}/projects?q=…` | Every line in a program whose title names a place |
+| `GET /api/v1/hgab/2027/datasets/{program}/projects?q=…` | Every line in a program whose title names a place; a place's list of `q` terms is one request each, merged |
 | `GET /api/v1/hgab/2027/datasets/{program}/projects/{id}` | One project: every version's amount and PDF page, match and reading labels, notes |
 | `GET /api/v1/hgab/2027/districts/{id}` | A district card: representative, offices, tiers, 2027 figures |
 | `GET /api/v1/hgab/2027/districts` | `npm run setup` only: every district and office, to find names and ids |
@@ -40,8 +40,10 @@ Every response carries `meta` (with `notice`, the source commit and build date) 
 ## The enacted budgets (GAA, 2020–2026)
 
 - The GAA has no place or office filter. Places are found by name: every department's
-  `programs` list is searched with the place's `q` (`loadGaa` in `src/lib/gaa.ts`), every
-  page, and the results merged by `fam_key` (one name in one agency across the years).
+  `programs` list is searched with each of the place's `q` terms (`loadGaa` in
+  `src/lib/gaa.ts`), every page, and the results merged by `fam_key` (one name in one
+  agency across the years). A place with several `q` terms is one search per term; the
+  matching families are merged.
 - **Use `programs`, not `/gaa/search`.** The search spans departments but returns at most
   100 results with no paging; for a province, DPWH alone fills it and other departments
   disappear.

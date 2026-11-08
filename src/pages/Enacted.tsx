@@ -93,7 +93,7 @@ export default function Enacted() {
           <li>Amounts are the appropriations in each year’s GAA, in pesos. The GAA publishes them in thousands.</li>
           {places.length > 0 && (
             <>
-              <li>A program is listed when its name includes {placeList}. Names are matched, not places surveyed; a project whose name does not say where it is will not be here.</li>
+              <li>A program is listed when its name includes one of the search terms for {placeList}. Names are matched, not places surveyed; a project whose name does not say where it is will not be here.</li>
               <li>One row is one name in one agency across the years. A renamed or re-scoped project shows as a new row. A dash means no appropriation under that name that year.</li>
             </>
           )}

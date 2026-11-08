@@ -28,8 +28,11 @@ export interface PlaceQuery {
   /**
    * The API search. Every word must appear in the project's title or listing
    * ("Tagbilaran Bohol" needs both). Defaults to `label`.
+   *
+   * A list runs every search and merges the results, so a place can be found
+   * under several spellings ("Miagao", "Miag-ao") when titles use them.
    */
-  q?: string;
+  q?: string | string[];
   /** A region key ("VII", "NCR", "IV-A") to keep a common name to one region. */
   region?: string;
   /** Programs to search. Defaults to all four. */
@@ -95,6 +98,16 @@ export const DEFAULT_REPORT_URL = 'https://budget.bettergov.ph/report';
 
 export function defineConfig(config: PortalConfig): PortalConfig {
   return config;
+}
+
+/**
+ * The search terms for a place: `q` (one or several) or, when none is given,
+ * the label. Blank terms are dropped so an empty string never becomes a search
+ * that matches everything.
+ */
+export function placeSearchTerms(p: PlaceQuery): string[] {
+  const terms = [...new Set((Array.isArray(p.q) ? p.q : p.q ? [p.q] : []).map((q) => q.trim()).filter(Boolean))];
+  return terms.length ? terms : [p.label];
 }
 
 /** Problems a fork should fix before deploying. Empty when the config is usable. */
